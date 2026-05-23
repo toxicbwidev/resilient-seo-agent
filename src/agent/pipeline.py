@@ -21,10 +21,12 @@ import time
 from typing import Any
 
 from src.failure_inject import InjectedFailure
+from src.guardrails import GuardrailBlocked, check_prompt_injection
 from src.state import PipelineState, StateStore, events, resume_or_start
 
 from .client import GatewayClient
 from .steps import PIPELINE_STEPS, Step
+from .watchdog import ZombieStepDetected, call_with_watchdog
 
 
 class PipelineError(RuntimeError):
@@ -37,6 +39,7 @@ def run_pipeline(
     pipeline_id: str,
     topic: str,
     max_retries_per_step: int = 2,
+    watchdog_timeout_sec: float = 30.0,
 ) -> PipelineState:
     state, _resumed = resume_or_start(store, pipeline_id, topic)
     state.outputs.setdefault("topic", topic)
@@ -44,7 +47,13 @@ def run_pipeline(
     while state.current_step < len(PIPELINE_STEPS):
         step = PIPELINE_STEPS[state.current_step]
         if not _run_one_step(
-            client, store, state, step, pipeline_id, max_retries_per_step
+            client,
+            store,
+            state,
+            step,
+            pipeline_id,
+            max_retries_per_step,
+            watchdog_timeout_sec,
         ):
             return state  # exhausted retries; state is on disk
 
@@ -64,6 +73,7 @@ def _run_one_step(
     step: Step,
     pipeline_id: str,
     max_retries: int,
+    watchdog_timeout_sec: float,
 ) -> bool:
     for attempt in range(1, max_retries + 2):
         store.append_event(
@@ -77,8 +87,47 @@ def _run_one_step(
         t0 = time.time()
         try:
             user_prompt = step.build_user_prompt(state.outputs)
-            raw = client.complete(step.model_pref, step.system_prompt, user_prompt)
+            # Input guardrail — runs *before* sending to the gateway. Blocks
+            # prompt-injection vectors so they never reach the model. See
+            # src/guardrails/prompt_injection.py for the pattern catalog.
+            # A GuardrailBlocked is terminal: retrying with the same input
+            # would just block again, so we let it propagate past the
+            # retry loop below via the special-case handler.
+            check_prompt_injection(user_prompt)
+            # Watchdog — bound the wall-clock cost of a single attempt. A
+            # zombie step (alive but making no progress) trips the timer
+            # and gets converted into ZombieStepDetected, which the retry
+            # loop handles like any other failure. See watchdog.py for the
+            # thread-leak caveat.
+            raw = call_with_watchdog(
+                lambda: client.complete(step.model_pref, step.system_prompt, user_prompt),
+                timeout_sec=watchdog_timeout_sec,
+                step_name=step.name,
+            )
             parsed = step.parse_output(raw)
+            # Semantic postcondition — catches well-formed but unusable output
+            # (empty arrays, two-word "articles", invalid enum values). See
+            # self_test.py for the per-step checks. A failure here drives the
+            # same retry path as a network error.
+            step.postcondition(parsed)
+        except GuardrailBlocked as gb:
+            # Terminal — emit guardrail event and abort the pipeline. State
+            # is saved so an operator can inspect what was blocked.
+            store.append_event(
+                events.GuardrailTriggered(
+                    pipeline_id=pipeline_id,
+                    step_name=step.name,
+                    guardrail_name=gb.guardrail_name,
+                    action="blocked",
+                    detail=f"pattern={gb.pattern_name} snippet={gb.snippet!r}",
+                )
+            )
+            state.mark_step_failed(step.name, "GuardrailBlocked", str(gb), step.model_pref)
+            store.save_checkpoint(state)
+            raise PipelineError(
+                f"step {step.name!r}: input blocked by guardrail "
+                f"{gb.guardrail_name!r} (pattern={gb.pattern_name!r})"
+            ) from gb
         except Exception as exc:
             _emit_failure(store, pipeline_id, state, step, exc)
             if isinstance(exc, InjectedFailure):

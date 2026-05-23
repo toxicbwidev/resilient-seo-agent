@@ -9,10 +9,11 @@ The order matters: each step consumes outputs of every earlier step.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable
 
 from ._json import extract_json
+from .self_test import POSTCONDITIONS
 
 
 @dataclass
@@ -22,6 +23,9 @@ class Step:
     system_prompt: str
     build_user_prompt: Callable[[dict[str, Any]], str]
     parse_output: Callable[[str], Any]
+    # Per-step semantic check. Runs after parse_output. Raises SelfTestFailed
+    # if the parsed value isn't usable for downstream steps. See self_test.py.
+    postcondition: Callable[[Any], None] = field(default=lambda _o: None)
 
 
 def _voice_user(outputs: dict[str, Any]) -> str:
@@ -74,6 +78,7 @@ VOICE = Step(
     system_prompt="You output brand voice as compact JSON. No commentary.",
     build_user_prompt=_voice_user,
     parse_output=extract_json,
+    postcondition=POSTCONDITIONS["voice"],
 )
 
 KEYWORD = Step(
@@ -82,6 +87,7 @@ KEYWORD = Step(
     system_prompt="You are an SEO keyword researcher. JSON only.",
     build_user_prompt=_keyword_user,
     parse_output=extract_json,
+    postcondition=POSTCONDITIONS["keyword"],
 )
 
 OUTLINE = Step(
@@ -90,6 +96,7 @@ OUTLINE = Step(
     system_prompt="You draft SEO blog outlines. JSON only.",
     build_user_prompt=_outline_user,
     parse_output=extract_json,
+    postcondition=POSTCONDITIONS["outline"],
 )
 
 DRAFT = Step(
@@ -101,6 +108,7 @@ DRAFT = Step(
     ),
     build_user_prompt=_draft_user,
     parse_output=lambda raw: raw.strip(),  # markdown stays as text
+    postcondition=POSTCONDITIONS["draft"],
 )
 
 OPTIMIZE = Step(
@@ -109,6 +117,7 @@ OPTIMIZE = Step(
     system_prompt="You are an SEO optimization specialist. JSON only.",
     build_user_prompt=_optimize_user,
     parse_output=extract_json,
+    postcondition=POSTCONDITIONS["optimize"],
 )
 
 PIPELINE_STEPS: list[Step] = [VOICE, KEYWORD, OUTLINE, DRAFT, OPTIMIZE]

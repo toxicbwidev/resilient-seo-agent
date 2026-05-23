@@ -2,7 +2,7 @@
 
 > Submission for the **Resilient Agents Hackathon** by TrueFoundry + AWS Bedrock (June 1–7, 2026).
 
-A production-grade resilient AI agent that keeps producing SEO content even when LLM providers fail. Built on TrueFoundry AI Gateway with AWS Bedrock, demonstrating six distinct recovery mechanisms across six failure modes.
+A production-grade resilient AI agent that keeps producing SEO content even when LLM providers fail. Built on TrueFoundry AI Gateway with AWS Bedrock. Nine reproducible failure scenarios, nine distinct recovery mechanisms — covering every failure category the hackathon brief calls out, plus three the brief implies but doesn't enumerate (semantic hallucination, prompt injection, zombie state).
 
 ## What it does
 
@@ -17,14 +17,19 @@ Each step is an LLM call (different task class, different model) plus tool calls
 
 The pipeline survives:
 
-| Failure mode                           | Recovery mechanism                                      |
-| -------------------------------------- | ------------------------------------------------------- |
-| Provider rate limit (HTTP 429)         | Priority-chain fallback to next Bedrock model           |
-| Provider outage                        | Circuit breaker opens, route to fallback model          |
-| Slow response (timeout >30s)           | Timeout cancel → next provider in chain                 |
-| MCP tool failure                       | Post-tool guardrail detects error → degraded-mode skip  |
-| Prompt injection in user input         | Input guardrail blocks → safe fallback prompt           |
-| Cascading multi-step failure           | State preservation → resume from last checkpoint        |
+| #  | Failure mode                          | Recovery mechanism                                                  |
+| -- | ------------------------------------- | ------------------------------------------------------------------- |
+| 1  | Provider rate limit (HTTP 429)        | Retry within step; gateway routes to next-priority model            |
+| 2  | Provider outage                       | Retry; gateway circuit-breaker routes to fallback provider          |
+| 3  | Slow response                         | Watchdog cancels; gateway timeout routes to next provider           |
+| 4  | MCP tool failure                      | Retry; post-tool guardrail rejects junk results                     |
+| 5  | Corrupted output (malformed JSON)     | `parse_output` raises; retry path                                   |
+| 6  | Cascading multi-step failure          | State preservation → resume from last checkpoint                    |
+| 7  | Semantic hallucination *(new)*        | Per-step postcondition catches well-formed but unusable JSON        |
+| 8  | Prompt injection in user input *(new)*| In-code input guardrail blocks before the call (terminal abort)     |
+| 9  | Zombie step / silent hang *(new)*     | Watchdog raises `ZombieStepDetected`; retry path picks up           |
+
+See `docs/failure-modes.md` for the full rationale on why 7/8/9 are not just nice-to-haves.
 
 ## Architecture
 
@@ -61,35 +66,55 @@ The pipeline survives:
 1. **Production-grade state preservation.** Append-only event log + crash-only writes + checkpoint-per-step. Ported from a working pattern proven across 100+ cross-provider agent delegations.
 2. **AGENT_SECURITY_CHECKLIST → Cedar policies.** 14 real-incident-derived rules translated to Cedar policy language for default-deny MCP tool access. Not toy examples — production rules.
 3. **Real product, real user.** SEO content for content marketers, not a weather-demo agent.
-4. **Six distinct recovery mechanisms** on six failure modes. Most submissions show one retry pattern on everything.
-5. **Failure injection harness as a deliverable.** Judges can re-run any of the six scenarios themselves.
+4. **Nine distinct recovery mechanisms** across nine failure modes. Most submissions show one retry pattern on everything; we split "bad intermediate outputs" into structural and semantic, add prompt-injection blocking, and add a watchdog for zombie state.
+5. **Failure injection harness as a deliverable.** Judges can re-run any of the nine scenarios themselves with `python demos/scenario_<N>_*.py`.
+6. **In-code guardrails mirror gateway configs.** The 8 JSON guardrail policies under `guardrails/` are the production layer; `src/guardrails/` runs the same checks in the agent so a demo run observably blocks attacks even against the mock client.
+7. **Watchdog for zombie steps.** Retry loops only fire on exceptions. A model that goes silent mid-stream needs a wall-clock timer — `src/agent/watchdog.py` converts silent hangs into observable failures.
 
 ## Repository layout
 
 ```
 src/
-  agent/             — pipeline orchestrator, step implementations
-  state/             — checkpoint, event log, resume logic
-  guardrails_runner/ — local guardrail invocation (mirrors gateway)
-  failure_inject/    — failure simulation harness
+  agent/             — pipeline orchestrator, step implementations,
+                       per-step semantic postconditions (self_test.py),
+                       watchdog for zombie detection
+  state/             — checkpoint, append-only event log, resume logic
+  guardrails/        — in-code prompt-injection guardrail (defense in
+                       depth — gateway is primary, this is secondary)
+  failure_inject/    — failure simulation harness (5 exception types,
+                       6 preset scenarios)
 gateway-config/
-  *.yaml             — TrueFoundry manifests (not committed if contain secrets)
+  *.yaml             — TrueFoundry manifests (gitignored if they
+                       carry secrets)
 guardrails/
-  *.json             — guardrail policy configs (PII, prompt injection, etc.)
+  *.json             — gateway-side guardrail configs (PII, prompt
+                       injection, secrets, content moderation, MCP)
 cedar/
-  *.cedar            — Cedar ABAC policies for MCP tool access
+  *.cedar            — Cedar ABAC policies for MCP tool access (8
+                       policies from AGENT_SECURITY_CHECKLIST)
 demos/
-  scenario-1-rate-limit.py
-  scenario-2-outage.py
-  ... (6 scripts, one per failure mode)
+  scenario_1_rate_limit.py
+  scenario_2_provider_outage.py
+  scenario_3_slow_response.py
+  scenario_4_tool_failure.py
+  scenario_5_corrupted_response.py
+  scenario_6_cascading.py
+  scenario_7_semantic_hallucination.py
+  scenario_8_prompt_injection.py
+  scenario_9_zombie_hang.py
 docs/
-  architecture.md
-  failure-modes.md
-  cedar-policy-mapping.md
+  failure-modes.md         — 9-row table with the full rationale
+  cedar-policy-mapping.md  — checklist → policy mapping (15 checks)
 tests/
-  test_state.py
-  test_recovery.py
+  test_state.py            — 7 tests
+  test_failure_inject.py   — 12 tests
+  test_pipeline.py         — 5 tests
+  test_self_test.py        — 17 tests (semantic postconditions)
+  test_guardrails.py       — 16 tests (prompt-injection patterns)
+  test_watchdog.py         — 6 tests (zombie detection)
 ```
+
+**Test count: 63/63 passing.**
 
 ## Quick start
 
