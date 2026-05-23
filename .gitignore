@@ -36,6 +36,7 @@ pipeline_state.json
 event_log.jsonl
 checkpoints/
 .session_state/
+.session_state_demos/
 
 # Build / dist
 dist/
