@@ -1,0 +1,80 @@
+{
+  "pipeline_id": "scenario-4-tool-failure",
+  "topic": "best running shoes 2026",
+  "started_at": 1779573297.2856293,
+  "current_step": 5,
+  "completed_steps": [
+    "voice",
+    "keyword",
+    "outline",
+    "draft",
+    "optimize"
+  ],
+  "outputs": {
+    "topic": "best running shoes 2026",
+    "voice": {
+      "tone": "casual_authoritative",
+      "vocabulary_level": "intermediate",
+      "sentence_length": "medium",
+      "avoid_words": [
+        "synergy",
+        "leverage",
+        "disrupt"
+      ]
+    },
+    "keyword": [
+      {
+        "keyword": "best running shoes 2026",
+        "intent": "commercial",
+        "estimated_volume": "high"
+      },
+      {
+        "keyword": "running shoe reviews",
+        "intent": "informational",
+        "estimated_volume": "high"
+      },
+      {
+        "keyword": "running shoe fit",
+        "intent": "informational",
+        "estimated_volume": "medium"
+      }
+    ],
+    "outline": {
+      "h1": "Best Running Shoes of 2026",
+      "sections": [
+        {
+          "h2": "Methodology",
+          "target_keyword": "running shoe reviews"
+        },
+        {
+          "h2": "Top Picks",
+          "target_keyword": "best running shoes 2026"
+        },
+        {
+          "h2": "Sizing Guide",
+          "target_keyword": "running shoe fit"
+        }
+      ],
+      "intro_hook": "Picking the right pair starts with knowing your gait."
+    },
+    "draft": "# Best Running Shoes of 2026\n\n*Picking the right pair starts with knowing your gait.*\n\n## Methodology\n\nWe tested each model over 200 km of mixed terrain.\n\n## Top Picks\n\nThe three that earned a spot...\n\n## Sizing Guide\n\nFit before colour, always.",
+    "optimize": {
+      "article": "# Best Running Shoes of 2026\n\nA tested-and-reviewed buyer's guide.\n\n## Methodology — Best Running Shoes of 2026\nWe ran the lineup over 200 km each.\n\n## Top Picks — Running Shoe Reviews\nThe podium...\n",
+      "meta_description": "Our 2026 picks for the best running shoes — methodology, top picks, sizing guide.",
+      "internal_links": [
+        "Marathon training plan",
+        "Pronation guide"
+      ]
+    }
+  },
+  "failed_attempts": [
+    {
+      "step": "voice",
+      "error_type": "InjectedToolFailure",
+      "error_msg": "Injected at call 1: tool_failure",
+      "model": "creative",
+      "ts": 1779573297.289147
+    }
+  ],
+  "metadata": {}
+}
