@@ -1,0 +1,46 @@
+# Credentials — NEVER commit
+.aws-credentials*
+*_accessKeys.csv
+aws-bedrock.yaml
+gateway-config/*-secrets.yaml
+gateway-config/aws-bedrock.yaml
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local state
+pipeline_state.json
+event_log.jsonl
+checkpoints/
+.session_state/
+
+# Build / dist
+dist/
+build/
+*.egg-info/
+
+# TrueFoundry local cache
+.tfy/

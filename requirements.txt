@@ -1,0 +1,6 @@
+openai>=2.0.0
+boto3>=1.35.0
+truefoundry>=0.15.0
+httpx>=0.28.0
+pydantic>=2.13.0
+python-dotenv>=1.0.0
