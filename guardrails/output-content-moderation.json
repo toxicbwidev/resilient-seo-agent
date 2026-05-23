@@ -1,0 +1,18 @@
+{
+  "name": "output-content-moderation",
+  "description": "Block model outputs that contain harmful content (hate, self-harm, sexual, violence).",
+  "type": "content_moderation",
+  "scope": "llm_output",
+  "mode": "validate",
+  "enforcement_strategy": "enforce",
+  "providers": [
+    "truefoundry.builtin.content_moderation",
+    "aws.bedrock_guardrails"
+  ],
+  "config": {
+    "categories": ["hate", "self_harm", "sexual", "violence"],
+    "severity_threshold": "medium",
+    "fallback_response": "I cannot produce that content. Please refine your topic so it stays within the policy scope."
+  },
+  "rationale": "Output validation runs synchronously after the model returns. A blocked output still incurs the model token cost — this is unavoidable. Logged in Request Traces UI for incident review."
+}

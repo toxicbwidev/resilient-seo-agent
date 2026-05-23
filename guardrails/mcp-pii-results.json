@@ -1,0 +1,24 @@
+{
+  "name": "mcp-pii-results",
+  "description": "Redact PII from tool results before they re-enter the model context.",
+  "type": "pii_redaction",
+  "scope": "mcp_tool_post_invoke",
+  "applies_to_tools": ["serp_scraper", "competitor_scraper", "web_fetch", "keyword_db"],
+  "mode": "mutate",
+  "enforcement_strategy": "enforce_but_ignore_on_error",
+  "providers": [
+    "truefoundry.builtin.pii"
+  ],
+  "config": {
+    "redact_categories": [
+      "EMAIL",
+      "PHONE_NUMBER",
+      "PERSON_NAME",
+      "STREET_ADDRESS",
+      "IP_ADDRESS"
+    ],
+    "replacement_strategy": "category_label",
+    "audit_original": true
+  },
+  "rationale": "SERP results and competitor scrapes routinely include staff names, contact info, and addresses. Redacting before the model both reduces what model-provider sees and removes a vector where adversarial scraped content carries embedded social-engineering material."
+}

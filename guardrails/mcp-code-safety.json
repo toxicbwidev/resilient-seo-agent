@@ -1,0 +1,24 @@
+{
+  "name": "mcp-code-safety",
+  "description": "Inspect tool results for unsafe code / scripts / executable content before they re-enter the model context.",
+  "type": "code_safety_linter",
+  "scope": "mcp_tool_post_invoke",
+  "applies_to_tools": ["serp_scraper", "competitor_scraper", "web_fetch"],
+  "mode": "validate",
+  "enforcement_strategy": "enforce",
+  "providers": [
+    "truefoundry.builtin.code_safety"
+  ],
+  "config": {
+    "detect_categories": [
+      "javascript_eval",
+      "shell_injection_chars",
+      "html_inline_script",
+      "data_uri_executable",
+      "macro_payload"
+    ],
+    "action_on_detect": "strip",
+    "audit_on_detect": true
+  },
+  "rationale": "A scraped page can return executable content the agent might decide to forward into a tool call (`bash`, `eval`, etc.). Post-tool inspection strips it before it influences the next LLM step. Pairs with the input prompt-injection guardrail to bound where adversarial content can land."
+}

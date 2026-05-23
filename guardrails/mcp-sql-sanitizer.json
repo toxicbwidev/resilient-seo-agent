@@ -1,0 +1,20 @@
+{
+  "name": "mcp-sql-sanitizer",
+  "description": "Validate SQL produced by the agent (for the keyword_db tool) before execution. Block injections, enforce column allowlist from cedar policy 03.",
+  "type": "sql_sanitizer",
+  "scope": "mcp_tool_pre_invoke",
+  "applies_to_tools": ["keyword_db", "competitor_db"],
+  "mode": "validate",
+  "enforcement_strategy": "enforce",
+  "providers": [
+    "truefoundry.builtin.sql_sanitizer"
+  ],
+  "config": {
+    "deny_statements": ["DROP", "DELETE", "TRUNCATE", "ALTER", "GRANT", "REVOKE"],
+    "deny_subqueries_to_tables": ["users", "accounts", "sessions"],
+    "deny_select_star": true,
+    "deny_information_schema_access": true,
+    "max_returned_rows": 1000
+  },
+  "rationale": "MCP keyword_db tool is read-only for the agent's purposes. Any DDL or write attempt is either a bug or an injection. The cedar policy 03-sql-column-allowlist enforces the column allowlist; this guardrail enforces the statement-shape allowlist."
+}

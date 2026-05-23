@@ -1,0 +1,21 @@
+{
+  "name": "mcp-url-whitelist",
+  "description": "Validate URL arguments passed to scraper / fetcher tools. Mirrors cedar policy 02-url-allowlist-scraper at the guardrail layer for defence in depth.",
+  "type": "regex_pattern_match",
+  "scope": "mcp_tool_pre_invoke",
+  "applies_to_tools": ["serp_scraper", "competitor_scraper", "web_fetch"],
+  "mode": "validate",
+  "enforcement_strategy": "enforce",
+  "providers": [
+    "truefoundry.builtin.regex"
+  ],
+  "config": {
+    "field": "url",
+    "must_match": "^https://(?:www\\.)?(google|bing|duckduckgo|serpapi\\.com|api\\.serpapi\\.com|ahrefs|api\\.ahrefs)\\.com/",
+    "deny_local_ranges": true,
+    "deny_link_local": true,
+    "deny_internal_dns": true,
+    "max_redirects": 3
+  },
+  "rationale": "Defence in depth: cedar 02 makes the access decision, this guardrail validates the literal URL shape. Both can fire independently — if cedar passes but the URL is malformed, this catches it."
+}

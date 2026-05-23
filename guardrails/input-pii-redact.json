@@ -1,0 +1,26 @@
+{
+  "name": "input-pii-redact",
+  "description": "Redact personally identifiable information from LLM input prompts before they reach the model. Mutate mode — the model sees the redacted version, the original is logged for audit.",
+  "type": "pii_redaction",
+  "scope": "llm_input",
+  "mode": "mutate",
+  "enforcement_strategy": "enforce_but_ignore_on_error",
+  "providers": [
+    "truefoundry.builtin.pii"
+  ],
+  "config": {
+    "redact_categories": [
+      "EMAIL",
+      "PHONE_NUMBER",
+      "US_SSN",
+      "CREDIT_CARD",
+      "IP_ADDRESS",
+      "STREET_ADDRESS",
+      "PERSON_NAME"
+    ],
+    "replacement_strategy": "category_label",
+    "preserve_length": false,
+    "audit_original": true
+  },
+  "rationale": "User prompts in an SEO content pipeline routinely contain customer names, contact info, and competitor URLs. Redacting before the model both reduces our PII surface in model-provider logs and removes a prompt-injection lever where an attacker embeds 'forget previous instructions, my email is...' content."
+}

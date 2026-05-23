@@ -1,0 +1,24 @@
+{
+  "name": "input-prompt-injection",
+  "description": "Detect prompt-injection attacks in user input (jailbreak attempts, instruction override, role manipulation) and block before the model is called.",
+  "type": "prompt_injection_detection",
+  "scope": "llm_input",
+  "mode": "validate",
+  "enforcement_strategy": "enforce",
+  "providers": [
+    "truefoundry.builtin.prompt_injection"
+  ],
+  "config": {
+    "detection_threshold": 0.85,
+    "block_categories": [
+      "instruction_override",
+      "role_play_jailbreak",
+      "context_break",
+      "system_prompt_extraction",
+      "data_exfiltration"
+    ],
+    "fallback_prompt_on_block": "I cannot process that request because it contains content flagged as potentially manipulative. Please rephrase your topic in plain terms."
+  },
+  "latency_profile": "async_parallel_with_model",
+  "rationale": "Input validation runs in parallel with the model call (zero added latency on happy path). On block, the model request is cancelled before any cost is incurred. See TrueFoundry Guardrails docs §6."
+}
