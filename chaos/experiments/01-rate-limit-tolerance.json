@@ -1,0 +1,44 @@
+{
+  "version": "1.0.0",
+  "title": "rate-limit-tolerance",
+  "description": "Inject HTTP 429 (rate limit) on 10% of model calls across 50 pipelines. Verify the retry budget absorbs the failures and most pipelines still complete.",
+  "tags": ["rate-limit", "retry", "fallback"],
+  "steady_state_hypothesis": {
+    "title": "Most pipelines complete despite 10% rate-limit injection; state always intact",
+    "probes": [
+      {
+        "name": "completion_rate",
+        "type": "metric",
+        "tolerance": {"min": 0.70, "max": 1.0}
+      },
+      {
+        "name": "state_integrity_rate",
+        "type": "metric",
+        "tolerance": {"min": 1.0, "max": 1.0}
+      },
+      {
+        "name": "crash_rate",
+        "type": "metric",
+        "tolerance": {"min": 0.0, "max": 0.0}
+      }
+    ]
+  },
+  "method": [
+    {
+      "name": "inject-rate-limit-burst",
+      "type": "action",
+      "provider": {
+        "type": "python",
+        "module": "chaos.injectors",
+        "func": "rate_limit_chaos",
+        "arguments": {
+          "n_pipelines": 50,
+          "probability": 0.10,
+          "seed": 42,
+          "concurrency": 4
+        }
+      }
+    }
+  ],
+  "rollbacks": []
+}

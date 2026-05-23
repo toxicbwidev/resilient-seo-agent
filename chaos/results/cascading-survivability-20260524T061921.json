@@ -1,0 +1,123 @@
+{
+  "title": "cascading-survivability",
+  "experiment_file": "chaos\\experiments\\03-cascading-survivability.json",
+  "started_at": 1779578361.036961,
+  "duration_sec": 0.3930525779724121,
+  "verdict": "FAIL",
+  "metrics": {
+    "n_pipelines": 50,
+    "completion_rate": 0.8,
+    "abort_rate": 0.18,
+    "crash_rate": 0.02,
+    "state_integrity_rate": 1.0,
+    "mean_retries": 1.46,
+    "failures_per_pipeline": 2.06,
+    "breakdown": {
+      "corrupted": 15,
+      "tool_failure": 24,
+      "rate_limit": 36,
+      "outage": 28
+    },
+    "outcomes_sample": [
+      {
+        "pipeline_id": "chaos-0000",
+        "topic": "best running shoes 2026",
+        "status": "aborted",
+        "completed_steps": [
+          "voice"
+        ],
+        "failed_attempts": 0,
+        "injections": [
+          {
+            "call": 2,
+            "type": "corrupted"
+          },
+          {
+            "call": 3,
+            "type": "tool_failure"
+          },
+          {
+            "call": 4,
+            "type": "rate_limit"
+          }
+        ],
+        "duration_sec": 0.010891914367675781,
+        "state_file_valid": true
+      },
+      {
+        "pipeline_id": "chaos-0001",
+        "topic": "marathon training plan",
+        "status": "completed",
+        "completed_steps": [
+          "voice",
+          "keyword",
+          "outline",
+          "draft",
+          "optimize"
+        ],
+        "failed_attempts": 0,
+        "injections": [],
+        "duration_sec": 0.0298917293548584,
+        "state_file_valid": true
+      },
+      {
+        "pipeline_id": "chaos-0002",
+        "topic": "running gear essentials 2026",
+        "status": "completed",
+        "completed_steps": [
+          "voice",
+          "keyword",
+          "outline",
+          "draft",
+          "optimize"
+        ],
+        "failed_attempts": 3,
+        "injections": [
+          {
+            "call": 3,
+            "type": "corrupted"
+          },
+          {
+            "call": 5,
+            "type": "corrupted"
+          },
+          {
+            "call": 7,
+            "type": "rate_limit"
+          }
+        ],
+        "duration_sec": 0.030231952667236328,
+        "state_file_valid": true
+      }
+    ]
+  },
+  "probes": [
+    {
+      "name": "state_integrity_rate",
+      "observed": 1.0,
+      "tolerance": {
+        "min": 1.0,
+        "max": 1.0
+      },
+      "passed": true
+    },
+    {
+      "name": "crash_rate",
+      "observed": 0.02,
+      "tolerance": {
+        "min": 0.0,
+        "max": 0.0
+      },
+      "passed": false
+    },
+    {
+      "name": "abort_rate",
+      "observed": 0.18,
+      "tolerance": {
+        "min": 0.05,
+        "max": 1.0
+      },
+      "passed": true
+    }
+  ]
+}

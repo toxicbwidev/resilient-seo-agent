@@ -1,0 +1,91 @@
+{
+  "pipeline_id": "chaos-0014",
+  "topic": "ultra marathon nutrition",
+  "started_at": 1779578441.1899095,
+  "current_step": 3,
+  "completed_steps": [
+    "voice",
+    "keyword",
+    "outline"
+  ],
+  "outputs": {
+    "topic": "ultra marathon nutrition",
+    "voice": {
+      "tone": "casual_authoritative",
+      "vocabulary_level": "intermediate",
+      "sentence_length": "medium",
+      "avoid_words": [
+        "synergy",
+        "leverage",
+        "disrupt"
+      ]
+    },
+    "keyword": [
+      {
+        "keyword": "best running shoes 2026",
+        "intent": "commercial",
+        "estimated_volume": "high"
+      },
+      {
+        "keyword": "running shoe reviews",
+        "intent": "informational",
+        "estimated_volume": "high"
+      },
+      {
+        "keyword": "running shoe fit",
+        "intent": "informational",
+        "estimated_volume": "medium"
+      },
+      {
+        "keyword": "marathon training plan",
+        "intent": "informational",
+        "estimated_volume": "medium"
+      },
+      {
+        "keyword": "pronation guide",
+        "intent": "informational",
+        "estimated_volume": "low"
+      },
+      {
+        "keyword": "trail running shoes",
+        "intent": "commercial",
+        "estimated_volume": "medium"
+      }
+    ],
+    "outline": {
+      "h1": "Best Running Shoes of 2026",
+      "sections": [
+        {
+          "h2": "Methodology",
+          "target_keyword": "running shoe reviews"
+        },
+        {
+          "h2": "Top Picks",
+          "target_keyword": "best running shoes 2026"
+        },
+        {
+          "h2": "Sizing Guide",
+          "target_keyword": "running shoe fit"
+        }
+      ],
+      "intro_hook": "Picking the right pair starts with knowing your gait."
+    }
+  },
+  "failed_attempts": [
+    {
+      "step": "keyword",
+      "error_type": "InjectedToolFailure",
+      "error_msg": "chaos: tool 5xx",
+      "model": "classifier",
+      "ts": 1779578441.1987624
+    },
+    {
+      "step": "keyword",
+      "error_type": "InjectedOutage",
+      "error_msg": "chaos: provider outage (503)",
+      "model": "classifier",
+      "ts": 1779578441.2005832
+    }
+  ],
+  "metadata": {}
+}

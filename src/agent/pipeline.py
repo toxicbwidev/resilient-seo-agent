@@ -144,13 +144,19 @@ def _run_one_step(
                     )
                 )
             if attempt > max_retries:
-                # final attempt exhausted; surface to caller, state is preserved
+                # final attempt exhausted; surface to caller, state is preserved.
+                # All retry-exhausted exceptions are wrapped in PipelineError so
+                # callers (chaos runner, demos, tests) have one type to catch.
+                # The original exception is available via __cause__ if needed.
                 if isinstance(exc, InjectedFailure):
                     raise PipelineError(
                         f"step {step.name!r}: exhausted {attempt} attempts under "
                         f"scenario {exc.scenario_name!r}"
                     ) from exc
-                raise
+                raise PipelineError(
+                    f"step {step.name!r}: exhausted {attempt} attempts "
+                    f"({type(exc).__name__}: {exc})"
+                ) from exc
             continue
 
         latency_ms = int((time.time() - t0) * 1000)

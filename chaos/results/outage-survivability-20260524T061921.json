@@ -1,0 +1,98 @@
+{
+  "title": "outage-survivability",
+  "experiment_file": "chaos\\experiments\\02-outage-survivability.json",
+  "started_at": 1779578360.652242,
+  "duration_sec": 0.38419651985168457,
+  "verdict": "PASS",
+  "metrics": {
+    "n_pipelines": 50,
+    "completion_rate": 1.0,
+    "abort_rate": 0.0,
+    "crash_rate": 0.0,
+    "state_integrity_rate": 1.0,
+    "mean_retries": 0.38,
+    "failures_per_pipeline": 0.38,
+    "breakdown": {
+      "outage": 19
+    },
+    "outcomes_sample": [
+      {
+        "pipeline_id": "chaos-0003",
+        "topic": "best running shoes 2026",
+        "status": "completed",
+        "completed_steps": [
+          "voice",
+          "keyword",
+          "outline",
+          "draft",
+          "optimize"
+        ],
+        "failed_attempts": 0,
+        "injections": [],
+        "duration_sec": 0.028439760208129883,
+        "state_file_valid": true
+      },
+      {
+        "pipeline_id": "chaos-0000",
+        "topic": "best running shoes 2026",
+        "status": "completed",
+        "completed_steps": [
+          "voice",
+          "keyword",
+          "outline",
+          "draft",
+          "optimize"
+        ],
+        "failed_attempts": 0,
+        "injections": [],
+        "duration_sec": 0.028992652893066406,
+        "state_file_valid": true
+      },
+      {
+        "pipeline_id": "chaos-0002",
+        "topic": "running gear essentials 2026",
+        "status": "completed",
+        "completed_steps": [
+          "voice",
+          "keyword",
+          "outline",
+          "draft",
+          "optimize"
+        ],
+        "failed_attempts": 0,
+        "injections": [],
+        "duration_sec": 0.03005528450012207,
+        "state_file_valid": true
+      }
+    ]
+  },
+  "probes": [
+    {
+      "name": "completion_rate",
+      "observed": 1.0,
+      "tolerance": {
+        "min": 0.65,
+        "max": 1.0
+      },
+      "passed": true
+    },
+    {
+      "name": "state_integrity_rate",
+      "observed": 1.0,
+      "tolerance": {
+        "min": 1.0,
+        "max": 1.0
+      },
+      "passed": true
+    },
+    {
+      "name": "crash_rate",
+      "observed": 0.0,
+      "tolerance": {
+        "min": 0.0,
+        "max": 0.0
+      },
+      "passed": true
+    }
+  ]
+}

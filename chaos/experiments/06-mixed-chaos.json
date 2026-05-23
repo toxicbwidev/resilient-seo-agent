@@ -1,0 +1,49 @@
+{
+  "version": "1.0.0",
+  "title": "mixed-chaos",
+  "description": "Realistic hostile environment. All seven failure types fire concurrently at production-plausible rates (~29% total failure probability per call), plus 5% poisoned topics. This is the closest-to-production stress test. Hypothesis is conservative — half complete is a win at this failure density — but state integrity must remain 100%.",
+  "tags": ["mixed", "production-shape", "headline"],
+  "steady_state_hypothesis": {
+    "title": "Under realistic hostile failure rates: at least 40% complete, state always intact, zero crashes",
+    "probes": [
+      {
+        "name": "completion_rate",
+        "type": "metric",
+        "tolerance": {"min": 0.40, "max": 1.0}
+      },
+      {
+        "name": "state_integrity_rate",
+        "type": "metric",
+        "tolerance": {"min": 1.0, "max": 1.0}
+      },
+      {
+        "name": "crash_rate",
+        "type": "metric",
+        "tolerance": {"min": 0.0, "max": 0.0}
+      },
+      {
+        "name": "failures_per_pipeline",
+        "type": "metric",
+        "tolerance": {"min": 1.0, "max": 100.0}
+      }
+    ]
+  },
+  "method": [
+    {
+      "name": "inject-everything",
+      "type": "action",
+      "provider": {
+        "type": "python",
+        "module": "chaos.injectors",
+        "func": "mixed_chaos",
+        "arguments": {
+          "n_pipelines": 50,
+          "seed": 42,
+          "concurrency": 4,
+          "watchdog_timeout_sec": 1.0
+        }
+      }
+    }
+  ],
+  "rollbacks": []
+}

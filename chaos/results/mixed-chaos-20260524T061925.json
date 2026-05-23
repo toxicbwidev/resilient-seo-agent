@@ -1,0 +1,131 @@
+{
+  "title": "mixed-chaos",
+  "experiment_file": "chaos\\experiments\\06-mixed-chaos.json",
+  "started_at": 1779578364.385491,
+  "duration_sec": 1.075819969177246,
+  "verdict": "FAIL",
+  "metrics": {
+    "n_pipelines": 50,
+    "completion_rate": 0.92,
+    "abort_rate": 0.06,
+    "crash_rate": 0.02,
+    "state_integrity_rate": 1.0,
+    "mean_retries": 1.04,
+    "failures_per_pipeline": 1.54,
+    "breakdown": {
+      "corrupted": 7,
+      "tool_failure": 8,
+      "slow": 13,
+      "rate_limit": 23,
+      "outage": 12,
+      "hallucinate": 10,
+      "hang": 4
+    },
+    "outcomes_sample": [
+      {
+        "pipeline_id": "chaos-0001",
+        "topic": "marathon training plan",
+        "status": "completed",
+        "completed_steps": [
+          "voice",
+          "keyword",
+          "outline",
+          "draft",
+          "optimize"
+        ],
+        "failed_attempts": 0,
+        "injections": [],
+        "duration_sec": 0.02815842628479004,
+        "state_file_valid": true
+      },
+      {
+        "pipeline_id": "chaos-0003",
+        "topic": "best running shoes 2026",
+        "status": "completed",
+        "completed_steps": [
+          "voice",
+          "keyword",
+          "outline",
+          "draft",
+          "optimize"
+        ],
+        "failed_attempts": 2,
+        "injections": [
+          {
+            "call": 3,
+            "type": "corrupted"
+          },
+          {
+            "call": 4,
+            "type": "tool_failure"
+          }
+        ],
+        "duration_sec": 0.03050065040588379,
+        "state_file_valid": true
+      },
+      {
+        "pipeline_id": "chaos-0002",
+        "topic": "running gear essentials 2026",
+        "status": "completed",
+        "completed_steps": [
+          "voice",
+          "keyword",
+          "outline",
+          "draft",
+          "optimize"
+        ],
+        "failed_attempts": 1,
+        "injections": [
+          {
+            "call": 3,
+            "type": "slow"
+          },
+          {
+            "call": 5,
+            "type": "corrupted"
+          }
+        ],
+        "duration_sec": 0.05119156837463379,
+        "state_file_valid": true
+      }
+    ]
+  },
+  "probes": [
+    {
+      "name": "completion_rate",
+      "observed": 0.92,
+      "tolerance": {
+        "min": 0.4,
+        "max": 1.0
+      },
+      "passed": true
+    },
+    {
+      "name": "state_integrity_rate",
+      "observed": 1.0,
+      "tolerance": {
+        "min": 1.0,
+        "max": 1.0
+      },
+      "passed": true
+    },
+    {
+      "name": "crash_rate",
+      "observed": 0.02,
+      "tolerance": {
+        "min": 0.0,
+        "max": 0.0
+      },
+      "passed": false
+    },
+    {
+      "name": "failures_per_pipeline",
+      "observed": 1.54,
+      "tolerance": {
+        "min": 1.0,
+        "max": 100.0
+      },
+      "passed": true
+    }
+  ]
+}

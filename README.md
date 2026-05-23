@@ -64,12 +64,14 @@ See `docs/failure-modes.md` for the full rationale on why 7/8/9 are not just nic
 ## Differentiators
 
 1. **Production-grade state preservation.** Append-only event log + crash-only writes + checkpoint-per-step. Ported from a working pattern proven across 100+ cross-provider agent delegations.
-2. **AGENT_SECURITY_CHECKLIST → Cedar policies.** 14 real-incident-derived rules translated to Cedar policy language for default-deny MCP tool access. Not toy examples — production rules.
+2. **AGENT_SECURITY_CHECKLIST → Cedar policies, with provenance.** 14 real-incident-derived rules translated to Cedar policy language for default-deny MCP tool access. Every policy cites its originating incident with date and severity — see [`docs/governance-provenance.md`](docs/governance-provenance.md). Not toy examples — production rules.
 3. **Real product, real user.** SEO content for content marketers, not a weather-demo agent.
 4. **Nine distinct recovery mechanisms** across nine failure modes. Most submissions show one retry pattern on everything; we split "bad intermediate outputs" into structural and semantic, add prompt-injection blocking, and add a watchdog for zombie state.
 5. **Failure injection harness as a deliverable.** Judges can re-run any of the nine scenarios themselves with `python demos/scenario_<N>_*.py`.
 6. **In-code guardrails mirror gateway configs.** The 8 JSON guardrail policies under `guardrails/` are the production layer; `src/guardrails/` runs the same checks in the agent so a demo run observably blocks attacks even against the mock client.
 7. **Watchdog for zombie steps.** Retry loops only fire on exceptions. A model that goes silent mid-stream needs a wall-clock timer — `src/agent/watchdog.py` converts silent hangs into observable failures.
+8. **Chaos engineering, not stress loops.** Six hypothesis-driven experiments in Chaos Toolkit-shape JSON under [`chaos/experiments/`](chaos/experiments/). 280 pipelines run across all six experiments, **100% state integrity, 0% crashes, 6/6 PASS** — see [`chaos/results/SUMMARY.md`](chaos/results/SUMMARY.md). Reproducible with `python -m chaos run-all`.
+9. **Orchestrator-choice rationale.** The brief leaves the agent orchestration framework open; we explain why raw Python over TF Workflows / LangGraph / CrewAI / AutoGen in [`docs/orchestrator-choice.md`](docs/orchestrator-choice.md), pre-empting the "why not LangGraph" question.
 
 ## Repository layout
 
@@ -105,6 +107,13 @@ demos/
 docs/
   failure-modes.md         — 9-row table with the full rationale
   cedar-policy-mapping.md  — checklist → policy mapping (15 checks)
+chaos/
+  experiments/             — 6 Chaos Toolkit-shape JSON experiments
+  results/SUMMARY.md       — committed run summary, 6/6 PASS, 280 pipes
+  results/*.json           — per-run JSONs (gitignored)
+  random_client.py         — probability-based failure injector
+  injectors.py             — chaos experiment entry points
+  runner.py                — Chaos Toolkit-format experiment runner
 tests/
   test_state.py            — 7 tests
   test_failure_inject.py   — 12 tests
@@ -112,9 +121,10 @@ tests/
   test_self_test.py        — 17 tests (semantic postconditions)
   test_guardrails.py       — 16 tests (prompt-injection patterns)
   test_watchdog.py         — 6 tests (zombie detection)
+  test_chaos.py            — 10 tests (framework + injector determinism)
 ```
 
-**Test count: 63/63 passing.**
+**Test count: 73/73 passing. Chaos: 6/6 experiments PASS across 280 pipelines.**
 
 ## Quick start
 

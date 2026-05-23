@@ -1,0 +1,44 @@
+{
+  "version": "1.0.0",
+  "title": "cascading-survivability",
+  "description": "Hostile environment: rate_limit / outage / tool_failure / corrupted all firing at high rates. Many pipelines will abort. The hypothesis is NOT about completion rate — it's about state integrity. Every abort must save state cleanly, zero crashes, zero corrupted state files.",
+  "tags": ["cascading", "state-integrity", "graceful-degradation"],
+  "steady_state_hypothesis": {
+    "title": "Aborts are graceful: 100% state integrity, zero crashes, even under heavy cascading failures",
+    "probes": [
+      {
+        "name": "state_integrity_rate",
+        "type": "metric",
+        "tolerance": {"min": 1.0, "max": 1.0}
+      },
+      {
+        "name": "crash_rate",
+        "type": "metric",
+        "tolerance": {"min": 0.0, "max": 0.0}
+      },
+      {
+        "name": "abort_rate",
+        "type": "metric",
+        "tolerance": {"min": 0.05, "max": 1.0}
+      }
+    ]
+  },
+  "method": [
+    {
+      "name": "inject-cascading-chaos",
+      "type": "action",
+      "provider": {
+        "type": "python",
+        "module": "chaos.injectors",
+        "func": "cascading_chaos",
+        "arguments": {
+          "n_pipelines": 50,
+          "probability": 0.20,
+          "seed": 42,
+          "concurrency": 4
+        }
+      }
+    }
+  ],
+  "rollbacks": []
+}
