@@ -25,6 +25,7 @@ from src.guardrails import GuardrailBlocked, check_prompt_injection
 from src.state import PipelineState, StateStore, events, resume_or_start
 
 from .client import GatewayClient
+from .failover_client import current_step_var
 from .steps import PIPELINE_STEPS, Step
 from .watchdog import ZombieStepDetected, call_with_watchdog
 
@@ -85,6 +86,10 @@ def _run_one_step(
             )
         )
         t0 = time.time()
+        # Publish step name on the contextvar so FailoverClient's fallback
+        # callback can name the originating step in the FallbackUsed event
+        # (FailoverClient doesn't otherwise know which step it's serving).
+        current_step_var.set(step.name)
         try:
             user_prompt = step.build_user_prompt(state.outputs)
             # Input guardrail — runs *before* sending to the gateway. Blocks

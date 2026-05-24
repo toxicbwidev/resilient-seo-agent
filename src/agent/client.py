@@ -19,11 +19,18 @@ system, user) -> str method.
 from __future__ import annotations
 
 import json
+import os
 from typing import Any, Protocol
 
 
 class GatewayClient(Protocol):
-    def complete(self, model_pref: str, system: str, user: str) -> str: ...
+    def complete(
+        self,
+        model_pref: str,
+        system: str,
+        user: str,
+        model_override: str | None = None,
+    ) -> str: ...
 
 
 class TrueFoundryClient:
@@ -40,11 +47,28 @@ class TrueFoundryClient:
 
         self._client = OpenAI(api_key=api_key, base_url=base_url, timeout=timeout_sec)
 
-    def complete(self, model_pref: str, system: str, user: str) -> str:
-        # `model_pref` is a routing-class alias the Gateway resolves to the
-        # actual model in the priority chain (Claude → Mistral → Llama → Cohere).
+    def complete(
+        self,
+        model_pref: str,
+        system: str,
+        user: str,
+        model_override: str | None = None,
+    ) -> str:
+        # Resolve model name in priority order:
+        #   1) Per-call model_override (FailoverClient passes this — picks the
+        #      current model from its chain on each retry attempt).
+        #   2) TFY_MODEL_OVERRIDE env var (single-model override for ops).
+        #   3) "resilient/<model_pref>" → resolves through a TF Gateway routing
+        #      rule named "resilient" (Claude → Mistral → ... chain). Requires
+        #      the rule to exist; deliberately NOT relied on for resilience
+        #      since we want failover in the agent code, not the gateway.
+        model = (
+            model_override
+            or os.environ.get("TFY_MODEL_OVERRIDE")
+            or f"resilient/{model_pref}"
+        )
         resp = self._client.chat.completions.create(
-            model=f"resilient/{model_pref}",
+            model=model,
             messages=[
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},

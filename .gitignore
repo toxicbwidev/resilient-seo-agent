@@ -37,6 +37,7 @@ event_log.jsonl
 checkpoints/
 .session_state/
 .session_state_demos/
+.session_state_live/
 stress_results/state/
 stress_results/*.json
 stress_results/*.csv

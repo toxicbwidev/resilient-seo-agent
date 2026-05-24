@@ -72,6 +72,7 @@ See `docs/failure-modes.md` for the full rationale on why 7/8/9 are not just nic
 7. **Watchdog for zombie steps.** Retry loops only fire on exceptions. A model that goes silent mid-stream needs a wall-clock timer — `src/agent/watchdog.py` converts silent hangs into observable failures.
 8. **Chaos engineering, not stress loops.** Six hypothesis-driven experiments in Chaos Toolkit-shape JSON under [`chaos/experiments/`](chaos/experiments/). 280 pipelines run across all six experiments, **100% state integrity, 0% crashes, 6/6 PASS** — see [`chaos/results/SUMMARY.md`](chaos/results/SUMMARY.md). Reproducible with `python -m chaos run-all`.
 9. **Orchestrator-choice rationale.** The brief leaves the agent orchestration framework open; we explain why raw Python over TF Workflows / LangGraph / CrewAI / AutoGen in [`docs/orchestrator-choice.md`](docs/orchestrator-choice.md), pre-empting the "why not LangGraph" question.
+10. **Agent-side cross-model failover, not a gateway routing rule.** The "resilient" part of "resilient agent" lives in the agent code: [`src/agent/failover_client.py`](src/agent/failover_client.py) wraps any `GatewayClient` with a configurable model chain. On rate-limit / outage / country-block / timeout it transparently advances to the next model and emits a `FallbackUsed` event so the decision is auditable. A real run on 2026-05-24 exercised this through TrueFoundry AI Gateway against a chain of 5 models (Bedrock × 2 → Gemini → Mistral × 2) — the live event log with 25 fallback transitions is committed at [`submission_artifacts/live-run-event-log.jsonl`](submission_artifacts/live-run-event-log.jsonl) (see [`submission_artifacts/README.md`](submission_artifacts/README.md)).
 
 ## Repository layout
 
@@ -124,7 +125,7 @@ tests/
   test_chaos.py            — 10 tests (framework + injector determinism)
 ```
 
-**Test count: 73/73 passing. Chaos: 6/6 experiments PASS across 280 pipelines.**
+**Test count: 83/83 passing. Chaos: 6/6 experiments PASS across 280 pipelines.**
 
 ## Quick start
 

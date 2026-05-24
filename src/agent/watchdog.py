@@ -21,6 +21,7 @@ docs/failure-modes.md.
 from __future__ import annotations
 
 import concurrent.futures
+import contextvars
 from typing import Callable, TypeVar
 
 T = TypeVar("T")
@@ -62,9 +63,15 @@ def call_with_watchdog(
     # defeats the entire purpose of a watchdog. We manage shutdown manually
     # and pass wait=False so the caller can move on while the zombie thread
     # leaks (a documented trade-off — see module docstring).
+    # Propagate the caller's contextvars (e.g. failover_client.current_step_var
+    # set by pipeline._run_one_step) into the worker thread. Without this,
+    # the worker starts with an empty Context and downstream telemetry
+    # callbacks lose attribution. copy_context().run also isolates worker
+    # mutations from the caller — symmetric with what Future itself promises.
+    ctx = contextvars.copy_context()
     ex = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     try:
-        future = ex.submit(fn)
+        future = ex.submit(ctx.run, fn)
         try:
             return future.result(timeout=timeout_sec)
         except concurrent.futures.TimeoutError as exc:
